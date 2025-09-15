@@ -22,6 +22,8 @@ Route::middleware([ 'jwt', 'role:admin'])->group(function () {
     Route::get('/myReviews', [\App\Http\Controllers\ReviewController::class, 'index']);
     Route::apiResource('/userRatingItems', \App\Http\Controllers\UserRatingItemsController::class);
     Route::get('/statistics', [\App\Http\Controllers\StatisticsController::class, 'statistics']);
+    Route::get('/dashboardStats', [\App\Http\Controllers\StatisticsController::class, 'dashboardStats']);
+
 });
 
 

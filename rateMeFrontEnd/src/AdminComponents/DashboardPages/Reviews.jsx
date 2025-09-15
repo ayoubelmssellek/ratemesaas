@@ -56,7 +56,7 @@ const ReviewCard = ({ review, loading }) => {
       <div className="flex items-center justify-between mb-4 p-3 bg-muted/30 rounded-lg">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">Overall Rating</span>
+          <span className="text-sm font-medium">{t('reviewsPage.OverallRating')}</span>
         </div>
         <div className="flex items-center gap-1">
           {[...Array(5)].map((_, i) => (
@@ -85,7 +85,7 @@ const ReviewCard = ({ review, loading }) => {
       {/* Individual Ratings */}
       {review.ratings && review.ratings.length > 0 && (
         <div className="space-y-3 mb-4">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rating Details</h4>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('reviewsPage.RatingDetails')}</h4>
           {review.ratings.map((rating, index) => (
             <div key={index} className="flex items-center justify-between p-2 bg-muted/10 rounded-lg hover:bg-muted/20 transition-colors">
               <span className="text-xs font-medium capitalize text-foreground/70">{rating.rating_item.toLowerCase()}</span>

@@ -5,7 +5,7 @@ import { Download, Copy, QrCode, Scan } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 function QRCodes() {
-  const user_id = localStorage.getItem("user_id") || "defaultUserId";
+  const user_id = localStorage.getItem("user_id") || 'default_id';
   const { t } = useTranslation();
   const [qrLink, setQrLink] = useState(`http://192.168.1.42:8081/review/${user_id}`);
   const qrRef = useRef();

@@ -52,6 +52,7 @@ public function statistics()
             'star' => $rating,
             'count' => $count,
             'percentage' => $totalReviews > 0 ? round(($count / $totalReviews) * 100, 2) : 0
+            
         ];
     })->sortByDesc('star')->values();
 
@@ -120,6 +121,98 @@ $monthlyReviews = collect(range(1, 12))->map(function ($month) use ($reviewsData
         ]
     ]);
 }
+public function dashboardStats()
+{
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    // 🗓 التواريخ
+    $today = now()->toDateString();
+    $yesterday = now()->subDay()->toDateString();
+
+    // 📌 Reviews today & yesterday
+    $reviewsToday = $user->reviews()->whereDate('created_at', $today)->count();
+    $reviewsYesterday = $user->reviews()->whereDate('created_at', $yesterday)->count();
+    $reviewsDiff = $reviewsToday - $reviewsYesterday;
+
+    // ⭐ Average rating today & yesterday
+    $avgToday = $user->reviews()
+        ->whereDate('created_at', $today)
+        ->with('reviewRatings')
+        ->get()
+        ->flatMap->reviewRatings
+        ->avg('rating') ?? 0;
+
+    $avgYesterday = $user->reviews()
+        ->whereDate('created_at', $yesterday)
+        ->with('reviewRatings')
+        ->get()
+        ->flatMap->reviewRatings
+        ->avg('rating') ?? 0;
+
+    $avgDiff = round($avgToday - $avgYesterday, 2);
+
+    // // 📲 QR scans today & yesterday (افترض عندك علاقة qrScans)
+    // $qrToday = $user->qrScans()->whereDate('created_at', $today)->count();
+    // $qrYesterday = $user->qrScans()->whereDate('created_at', $yesterday)->count();
+    // $qrDiff = $qrToday - $qrYesterday;
+
+    // 👥 New customers today & yesterday (افترض عندك علاقة customers)
+    // $customersToday = $user->customers()->whereDate('created_at', $today)->count();
+    // $customersYesterday = $user->customers()->whereDate('created_at', $yesterday)->count();
+    // $customersDiff = $customersToday - $customersYesterday;
+
+    // 📊 Rating Breakdown Today (1-5)
+    $allRatingsToday = $user->reviews()
+        ->whereDate('created_at', $today)
+        ->with('reviewRatings')
+        ->get()
+        ->flatMap->reviewRatings;
+
+    $totalRatingsToday = $allRatingsToday->count();
+
+    $ratingBreakdownToday = collect(range(1, 5))->map(function ($star) use ($allRatingsToday, $totalRatingsToday) {
+        $count = $allRatingsToday->where('rating', $star)->count();
+        return [
+            'star' => $star,
+            'count' => $count,
+            'percentage' => $totalRatingsToday > 0 ? round(($count / $totalRatingsToday) * 100, 2) : 0
+        ];
+    })->sortByDesc('star')->values();
+
+    // 🏆 Top Rated Items Today
+    $topRatedToday = $allRatingsToday
+        ->groupBy('rating_item_id')
+        ->map(function ($ratings, $itemId) {
+            $ratingItem = $ratings->first()->ratingItem;
+            return [
+                'id' => $itemId,
+                'name' => $ratingItem->name,
+                'average_rating' => round($ratings->avg('rating'), 2),
+                'total_ratings' => $ratings->count(),
+            ];
+        })
+        ->sortByDesc('average_rating')
+        ->take(5)
+        ->values();
+
+    return response()->json([
+        'date' => $today,
+        'reviews_today' => $reviewsToday,
+        'reviews_diff' => $reviewsDiff,
+        // 'qr_scans_today' => $qrToday,
+        // 'qr_scans_diff' => $qrDiff,
+        // 'new_customers_today' => $customersToday,
+        // 'new_customers_diff' => $customersDiff,
+        'average_rating_today' => round($avgToday, 1),
+        'average_rating_diff' => $avgDiff,
+        'rating_breakdown_today' => $ratingBreakdownToday,
+        'top_rated_items_today' => $topRatedToday
+    ]);
+}
+
 
 
 }
